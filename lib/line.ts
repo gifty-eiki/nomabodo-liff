@@ -6,12 +6,12 @@ export async function verifyLineToken(token: string): Promise<string | null> {
   if (token === DEV_TOKEN) return DEV_LINE_USER_ID
 
   try {
-    const res = await fetch(
-      `https://api.line.me/oauth2/v2.1/verify?access_token=${token}`
-    )
+    const res = await fetch('https://api.line.me/v2/profile', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     if (!res.ok) return null
     const data = await res.json()
-    return data.sub as string
+    return data.userId as string
   } catch {
     return null
   }
