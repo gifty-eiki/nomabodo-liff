@@ -5,8 +5,11 @@ import { ForceCheckoutButton } from '@/components/admin/ForceCheckoutButton'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // JSTで今日の0時を計算（サーバーはUTCのため+9時間調整）
+  const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  const todayStart = new Date(
+    Date.UTC(nowJST.getUTCFullYear(), nowJST.getUTCMonth(), nowJST.getUTCDate()) - 9 * 60 * 60 * 1000
+  )
 
   const [currentGuests, todayVisitors, todayPayments, subscriberCount] = await Promise.all([
     // 現在の在室者
