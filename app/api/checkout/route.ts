@@ -61,14 +61,15 @@ export async function POST(request: Request) {
     },
   })
 
-  if (amountYen === 0) {
+  // Stripeが未設定の場合は決済スキップ
+  if (amountYen === 0 || !process.env.STRIPE_SECRET_KEY) {
     await prisma.payment.create({
       data: {
         profileId: profile.id,
         visitSessionId: updatedSession.id,
-        amountYen: 0,
+        amountYen,
         status: 'succeeded',
-        paymentType: 'subscription',
+        paymentType: amountYen === 0 ? 'subscription' : 'one_time',
       },
     })
     return NextResponse.json({ session: updatedSession, stripeUrl: null })
