@@ -1,0 +1,36 @@
+{
+  "name": "nomabodo-liff",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@line/liff": "^2.29.0",
+    "@prisma/client": "^5.22.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "jose": "^6.2.3",
+    "next": "14.2.35",
+    "prisma": "^5.22.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "stripe": "^14.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,75 @@
+// ローカル開発: SQLite (DATABASE_URL=file:./dev.db)
+// 本番Vercel: schema.production.prisma の provider を postgresql に変更して使う
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id               String         @id @default(cuid())
+  lineUserId       String         @unique
+  displayName      String?
+  pictureUrl       String?
+  isAdmin          Boolean        @default(false)
+  stripeCustomerId String?
+  createdAt        DateTime       @default(now())
+  visitSessions    VisitSession[]
+  payments         Payment[]
+  subscription     Subscription?
+}
+
+model VisitSession {
+  id              String    @id @default(cuid())
+  profileId       String
+  profile         Profile   @relation(fields: [profileId], references: [id])
+  checkedInAt     DateTime  @default(now())
+  checkedOutAt    DateTime?
+  durationMinutes Int?
+  amountYen       Int?
+  billingType     String    @default("pay_per_use")
+  payment         Payment?
+  createdAt       DateTime  @default(now())
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  profileId             String
+  profile               Profile       @relation(fields: [profileId], references: [id])
+  visitSessionId        String?       @unique
+  visitSession          VisitSession? @relation(fields: [visitSessionId], references: [id])
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  amountYen             Int
+  status                String        @default("pending")
+  paymentType           String
+  createdAt             DateTime      @default(now())
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  profileId            String    @unique
+  profile              Profile   @relation(fields: [profileId], references: [id])
+  stripeSubscriptionId String    @unique
+  stripePriceId        String
+  planName             String
+  status               String
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model PricingConfig {
+  id              String   @id @default(cuid())
+  label           String
+  intervalMinutes Int
+  amountYen       Int
+  appliesTo       String   @default("pay_per_use")
+  isActive        Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
+}
