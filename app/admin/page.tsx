@@ -11,7 +11,7 @@ export default async function AdminDashboard() {
     Date.UTC(nowJST.getUTCFullYear(), nowJST.getUTCMonth(), nowJST.getUTCDate()) - 9 * 60 * 60 * 1000
   )
 
-  const [currentGuests, todayVisitors, todayPayments, subscriberCount] = await Promise.all([
+  const [currentGuests, todayVisitors, todayRevenueResult, subscriberCount] = await Promise.all([
     // 現在の在室者
     prisma.visitSession.findMany({
       where: { checkedOutAt: null },
@@ -27,17 +27,19 @@ export default async function AdminDashboard() {
       include: { profile: true },
       orderBy: { checkedInAt: 'asc' },
     }),
-    // 本日の売上
-    prisma.payment.findMany({
+    // 本日の売上（セッションのamountYenで集計）
+    prisma.visitSession.aggregate({
       where: {
-        createdAt: { gte: todayStart },
-        status: 'succeeded',
+        checkedInAt: { gte: todayStart },
+        checkedOutAt: { not: null },
+        amountYen: { not: null },
       },
+      _sum: { amountYen: true },
     }),
     prisma.subscription.count({ where: { status: 'active' } }),
   ])
 
-  const todayRevenue = todayPayments.reduce((sum, p) => sum + p.amountYen, 0)
+  const todayRevenue = todayRevenueResult._sum.amountYen ?? 0
 
   return (
     <div>
