@@ -11,8 +11,11 @@ export default async function AdminLayout({
   const lineUserId = await getAdminSession()
   if (!lineUserId) redirect('/admin-login')
 
-  const profile = await prisma.profile.findUnique({ where: { lineUserId } })
-  if (!profile?.isAdmin) redirect('/admin-login')
+  // 静的管理者トークンの場合はDB確認不要
+  if (lineUserId !== 'admin') {
+    const profile = await prisma.profile.findUnique({ where: { lineUserId } })
+    if (!profile?.isAdmin) redirect('/admin-login')
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
