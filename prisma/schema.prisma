@@ -1,13 +1,14 @@
-// ローカル開発: SQLite (DATABASE_URL=file:./dev.db)
-// 本番Vercel: schema.production.prisma の provider を postgresql に変更して使う
+// Vercel本番デプロイ用スキーマ
+// デプロイ前に schema.prisma の内容をこれに置き換えること
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Profile {
