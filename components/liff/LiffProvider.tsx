@@ -80,12 +80,16 @@ export function LiffProvider({ children }: { children: ReactNode }) {
         const profile = await liff.getProfile()
         const accessToken = liff.getAccessToken()
 
-        if (accessToken) {
-          await fetch('/api/upsert-profile', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
+        if (!accessToken) {
+          // トークンが取得できない場合は再ログイン
+          liff.login()
+          return
         }
+
+        await fetch('/api/upsert-profile', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
 
         setValue({
           liff,

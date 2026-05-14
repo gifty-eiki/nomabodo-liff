@@ -13,7 +13,10 @@ export function CheckInButton({ onCheckedIn }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   async function handleCheckIn() {
-    if (!accessToken) return
+    if (!accessToken) {
+      setError('認証情報が取得できませんでした。再読み込みしてください。')
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -32,16 +35,38 @@ export function CheckInButton({ onCheckedIn }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-8">
+      {/* ストア名 */}
+      <div className="text-center">
+        <h1 className="text-3xl font-light tracking-widest text-stone-800 mb-1">のまぼど</h1>
+        <p className="text-xs text-stone-400 tracking-widest">BOARD GAME CAFÉ</p>
+      </div>
+
+      {/* チェックインボタン */}
       <button
         onClick={handleCheckIn}
         disabled={loading}
-        className="w-64 h-64 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-2xl font-bold shadow-lg disabled:opacity-50 transition-colors"
+        className="relative w-52 h-52 rounded-full bg-stone-800 hover:bg-stone-700 active:scale-95 text-white shadow-xl disabled:opacity-40 transition-all duration-200 touch-manipulation"
       >
-        {loading ? '処理中...' : '入室する'}
+        {loading ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm tracking-wide">処理中...</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-4xl mb-1">🚪</span>
+            <span className="text-lg font-medium tracking-wider">入室する</span>
+            <span className="text-xs opacity-60 tracking-wide">タップしてチェックイン</span>
+          </div>
+        )}
       </button>
+
+      {/* エラー表示 */}
       {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
+        <div className="w-full max-w-xs bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <p className="text-red-500 text-sm text-center">{error}</p>
+        </div>
       )}
     </div>
   )

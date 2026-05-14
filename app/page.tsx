@@ -50,10 +50,10 @@ export default function HomePage() {
 
   if (!isReady || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">読み込み中...</p>
+          <div className="w-8 h-8 border-2 border-stone-800 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-stone-400 text-sm tracking-wide">読み込み中</p>
         </div>
       </div>
     )
@@ -61,75 +61,78 @@ export default function HomePage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-6">
+      <div className="flex items-center justify-center min-h-screen bg-stone-50 p-6">
         <div className="text-center">
-          <p className="text-red-500 mb-2">エラーが発生しました</p>
-          <p className="text-gray-500 text-sm">{error}</p>
+          <p className="text-red-400 text-sm">{error}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-6 pt-12">
-      <div className="w-full max-w-sm">
-        {/* ヘッダー */}
-        <div className="text-center mb-8">
-          {profile?.pictureUrl && (
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      {/* ヘッダー */}
+      <header className="px-6 pt-12 pb-6">
+        <div className="flex items-center gap-3">
+          {profile?.pictureUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.pictureUrl}
               alt={profile.displayName}
-              className="w-16 h-16 rounded-full mx-auto mb-3 border-2 border-green-500"
+              className="w-10 h-10 rounded-full object-cover"
             />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-stone-200 flex items-center justify-center">
+              <span className="text-stone-500 text-sm font-medium">
+                {profile?.displayName?.charAt(0) ?? '?'}
+              </span>
+            </div>
           )}
-          <h1 className="text-2xl font-bold text-gray-800">のまぼど</h1>
-          <p className="text-gray-500 text-sm">
-            {profile?.displayName} さん
-          </p>
+          <div>
+            <p className="text-xs text-stone-400 tracking-wide">のまぼど</p>
+            <p className="text-sm font-medium text-stone-700">{profile?.displayName}</p>
+          </div>
           {subscription?.isActive && (
-            <span className="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+            <span className="ml-auto text-xs px-2 py-0.5 bg-stone-800 text-white rounded-full">
               会員
             </span>
           )}
         </div>
+      </header>
 
-        {/* メインコンテンツ */}
-        <div className="flex flex-col items-center gap-6">
-          {openSession ? (
-            <CheckOutCard
-              checkedInAt={openSession.checkedInAt}
-              estimatedCost={openSession.estimatedCost}
-              intervalMinutes={openSession.intervalMinutes}
-              amountPerInterval={openSession.amountPerInterval}
-              onCheckedOut={() => {
-                setOpenSession(null)
-                fetchStatus()
-              }}
-            />
-          ) : (
-            <CheckInButton onCheckedIn={() => fetchStatus()} />
-          )}
+      {/* メインコンテンツ */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 -mt-12">
+        {openSession ? (
+          <CheckOutCard
+            checkedInAt={openSession.checkedInAt}
+            estimatedCost={openSession.estimatedCost}
+            intervalMinutes={openSession.intervalMinutes}
+            amountPerInterval={openSession.amountPerInterval}
+            onCheckedOut={() => {
+              setOpenSession(null)
+              fetchStatus()
+            }}
+          />
+        ) : (
+          <CheckInButton onCheckedIn={() => fetchStatus()} />
+        )}
+      </main>
 
-          {/* サブスクリンク */}
-          {!subscription?.isActive && (
-            <Link
-              href="/subscription"
-              className="text-green-600 text-sm underline underline-offset-2"
-            >
-              月額プランに登録する →
-            </Link>
-          )}
-          {subscription?.isActive && subscription.currentPeriodEnd && (
-            <p className="text-gray-400 text-xs">
-              次回更新:{' '}
-              {new Date(subscription.currentPeriodEnd).toLocaleDateString(
-                'ja-JP'
-              )}
-            </p>
-          )}
-        </div>
-      </div>
+      {/* フッター */}
+      <footer className="px-6 pb-10 text-center">
+        {!subscription?.isActive ? (
+          <Link
+            href="/subscription"
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            月額プランを見る
+          </Link>
+        ) : subscription.currentPeriodEnd ? (
+          <p className="text-xs text-stone-300">
+            次回更新 {new Date(subscription.currentPeriodEnd).toLocaleDateString('ja-JP')}
+          </p>
+        ) : null}
+      </footer>
     </div>
   )
 }

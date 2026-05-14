@@ -65,29 +65,66 @@ export function CheckOutCard({
     }
   }
 
+  const checkedInTime = new Date(checkedInAt).toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-      <div className="bg-white rounded-2xl shadow-md p-6 w-full text-center">
-        <p className="text-gray-500 text-sm mb-1">滞在時間</p>
-        <p className="text-4xl font-bold text-gray-800 mb-4">
-          {formatDuration(elapsed)}
-        </p>
-        <p className="text-gray-500 text-sm mb-1">現在の料金（目安）</p>
-        <p className="text-3xl font-bold text-green-600">
-          {formatYen(currentCost)}
-        </p>
+    <div className="flex flex-col items-center gap-8 w-full max-w-xs">
+      {/* ストア名 */}
+      <div className="text-center">
+        <h1 className="text-3xl font-light tracking-widest text-stone-800 mb-1">のまぼど</h1>
+        <p className="text-xs text-stone-400 tracking-widest">BOARD GAME CAFÉ</p>
       </div>
 
+      {/* 滞在情報カード */}
+      <div className="w-full bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
+        <p className="text-xs text-stone-400 tracking-wide text-center mb-6">
+          {checkedInTime} に入室
+        </p>
+
+        <div className="text-center mb-6">
+          <p className="text-xs text-stone-400 tracking-wide mb-1">滞在時間</p>
+          <p className="text-5xl font-light text-stone-800 tracking-tight">
+            {formatDuration(elapsed)}
+          </p>
+        </div>
+
+        <div className="h-px bg-stone-100 my-4" />
+
+        <div className="text-center">
+          <p className="text-xs text-stone-400 tracking-wide mb-1">料金（目安）</p>
+          <p className="text-3xl font-medium text-stone-800">
+            {formatYen(currentCost)}
+          </p>
+          <p className="text-xs text-stone-300 mt-1">
+            {intervalMinutes}分ごとに {formatYen(amountPerInterval)}
+          </p>
+        </div>
+      </div>
+
+      {/* 退室ボタン */}
       <button
         onClick={handleCheckOut}
         disabled={loading}
-        className="w-64 h-24 rounded-2xl bg-red-500 hover:bg-red-600 active:bg-red-700 text-white text-xl font-bold shadow-lg disabled:opacity-50 transition-colors"
+        className="w-full py-4 rounded-2xl bg-stone-800 hover:bg-stone-700 active:scale-95 text-white font-medium tracking-wide shadow-md disabled:opacity-40 transition-all duration-200 touch-manipulation"
       >
-        {loading ? '処理中...' : '退室する'}
+        {loading ? (
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span>処理中...</span>
+          </div>
+        ) : (
+          '退室する・お会計'
+        )}
       </button>
 
+      {/* エラー表示 */}
       {error && (
-        <p className="text-red-500 text-sm text-center">{error}</p>
+        <div className="w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <p className="text-red-500 text-sm text-center">{error}</p>
+        </div>
       )}
     </div>
   )
