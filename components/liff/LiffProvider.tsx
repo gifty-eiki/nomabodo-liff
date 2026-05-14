@@ -67,6 +67,12 @@ export function LiffProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      // 管理画面はLIFF不要
+      if (window.location.pathname.startsWith('/admin')) {
+        setValue((prev) => ({ ...prev, isReady: true }))
+        return
+      }
+
       // 本番モード: LIFF初期化
       try {
         const liff = (await import('@line/liff')).default
