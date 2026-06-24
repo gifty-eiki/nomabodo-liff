@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { formatYen, formatDuration } from '@/lib/billing'
-import Image from 'next/image'
 
 type Props = {
   checkedInAt: string
@@ -71,7 +70,8 @@ export function CheckOutCard({
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-xs">
       {/* ロゴ（小さめ） */}
-      <Image src="/logo.jpg" alt="のまぼど" width={96} height={96} className="rounded-full drop-shadow-2xl border-2 border-amber-200/40" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/logo.jpg" alt="のまぼど" className="w-24 h-24 object-contain rounded-full drop-shadow-2xl" style={{ border: '2px solid rgba(245,222,179,0.3)' }} />
 
       {/* 滞在情報カード */}
       <div

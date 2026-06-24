@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { CheckInButton } from '@/components/customer/CheckInButton'
 import { CheckOutCard } from '@/components/customer/CheckOutCard'
-import Image from 'next/image'
 
 type OpenSession = {
   id: string
@@ -74,14 +73,14 @@ export default function HomePage() {
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
       {/* 背景画像 */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/入室画面.png"
-          alt="background"
-          fill
-          className="object-cover object-center"
-          priority
-        />
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: "url('/background.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* オーバーレイ */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/50" />
       </div>
@@ -139,12 +138,11 @@ export default function HomePage() {
             <>
               {/* ロゴ */}
               <div className="flex flex-col items-center gap-2">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/logo.jpg"
                   alt="のまぼど"
-                  width={180}
-                  height={180}
-                  className="drop-shadow-xl"
+                  className="w-44 h-44 object-contain drop-shadow-xl"
                 />
                 <p className="text-white/90 text-xs tracking-widest font-medium">BOARD GAME CAFÉ ☕</p>
                 <p className="text-white text-sm font-medium text-center drop-shadow">
