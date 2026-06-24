@@ -98,15 +98,19 @@ export default async function CustomersPage({ searchParams }: Props) {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table className="w-full min-w-[640px]">
+        <table className="w-full min-w-[1000px]">
           <thead>
             <tr className="text-left text-xs text-gray-500 border-b">
               <th className="px-6 py-3">お客様</th>
-              <th className="px-6 py-3">会員</th>
-              <th className="px-6 py-3">状態</th>
-              <th className="px-6 py-3">来店回数</th>
-              <th className="px-6 py-3">最終利用日</th>
-              <th className="px-6 py-3">登録日</th>
+              <th className="px-4 py-3">本名</th>
+              <th className="px-4 py-3">性別</th>
+              <th className="px-4 py-3">年代</th>
+              <th className="px-4 py-3">地域</th>
+              <th className="px-4 py-3">会員</th>
+              <th className="px-4 py-3">状態</th>
+              <th className="px-4 py-3">来店回数</th>
+              <th className="px-4 py-3">最終利用日</th>
+              <th className="px-4 py-3">登録日</th>
             </tr>
           </thead>
           <tbody>
@@ -140,24 +144,52 @@ export default async function CustomersPage({ searchParams }: Props) {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 text-sm">
+                    {customer.realName ? (
+                      <span className="text-gray-700">{customer.realName}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {customer.gender ? (
+                      <span className="text-gray-700">{customer.gender}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {customer.ageGroup ? (
+                      <span className="text-gray-700">{customer.ageGroup}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4 text-sm">
+                    {customer.region ? (
+                      <span className="text-gray-700">{customer.region}</span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4">
                     {customer.subscription?.status === 'active' ? (
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">会員</span>
                     ) : (
                       <span className="text-gray-400 text-sm">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     {isInRoom ? (
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">在室中</span>
                     ) : (
                       <span className="text-gray-400 text-sm">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-700 text-sm font-medium">
+                  <td className="px-4 py-4 text-gray-700 text-sm font-medium">
                     {customer._count.visitSessions} 回
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-4 py-4 text-sm">
                     {lastVisitDate ? (
                       <span className="text-gray-700">
                         {new Date(lastVisitDate).toLocaleDateString('ja-JP', {
@@ -170,7 +202,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">
+                  <td className="px-4 py-4 text-gray-500 text-sm">
                     {new Date(customer.createdAt).toLocaleDateString('ja-JP')}
                   </td>
                 </tr>
