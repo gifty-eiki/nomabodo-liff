@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { CheckInButton } from '@/components/customer/CheckInButton'
 import { CheckOutCard } from '@/components/customer/CheckOutCard'
+import { SurveyModal } from '@/components/customer/SurveyModal'
+import { EditPlayerNameModal } from '@/components/customer/EditPlayerNameModal'
 
 type OpenSession = {
   id: string
@@ -27,6 +29,9 @@ export default function HomePage() {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null)
   const [currentOccupancy, setCurrentOccupancy] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [surveyCompleted, setSurveyCompleted] = useState(true) // 初期はtrueで画面ちらつき防止
+  const [playerName, setPlayerName] = useState<string | null>(null)
+  const [showEditName, setShowEditName] = useState(false)
 
   async function fetchStatus() {
     if (!accessToken) return
@@ -40,6 +45,8 @@ export default function HomePage() {
         setOpenSession(data.openSession)
         setSubscription(data.subscription)
         setCurrentOccupancy(data.currentOccupancy ?? 0)
+        setSurveyCompleted(data.surveyCompleted ?? true)
+        setPlayerName(data.playerName ?? null)
       }
     } finally {
       setLoading(false)
@@ -50,6 +57,8 @@ export default function HomePage() {
     if (isReady && accessToken) fetchStatus()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, accessToken])
+
+  const displayName = playerName || profile?.displayName || ''
 
   if (!isReady || loading) {
     return (
@@ -91,13 +100,35 @@ export default function HomePage() {
           backgroundPosition: 'center top',
         }}
       />
-      {/* 下部に向けて薄いグラデーション（フッターを読みやすく） */}
+      {/* 下部グラデーション */}
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+
+      {/* 初回アンケートモーダル */}
+      {!surveyCompleted && (
+        <SurveyModal
+          onCompleted={(name) => {
+            setPlayerName(name)
+            setSurveyCompleted(true)
+          }}
+        />
+      )}
+
+      {/* プレイヤーネーム編集モーダル */}
+      {showEditName && (
+        <EditPlayerNameModal
+          currentName={playerName || profile?.displayName || ''}
+          onUpdated={(name) => {
+            setPlayerName(name)
+            setShowEditName(false)
+          }}
+          onClose={() => setShowEditName(false)}
+        />
+      )}
 
       {/* コンテンツ */}
       <div className="relative z-10 flex flex-col min-h-screen">
 
-        {/* ヘッダー：ユーザー情報 */}
+        {/* ヘッダー */}
         <header className="px-4 pt-6 pb-2">
           <div className="flex items-center gap-2.5">
             {profile?.pictureUrl ? (
@@ -105,29 +136,40 @@ export default function HomePage() {
               <img
                 src={profile.pictureUrl}
                 alt={profile.displayName}
-                className="w-9 h-9 rounded-full shadow-md"
+                className="w-9 h-9 rounded-full shadow-md flex-shrink-0"
                 style={{ border: '2px solid rgba(255,255,255,0.8)' }}
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-md"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-md flex-shrink-0"
                 style={{ background: 'rgba(139,90,43,0.7)', color: '#f5deb3' }}
               >
-                {profile?.displayName?.charAt(0) ?? '?'}
+                {displayName?.charAt(0) ?? '?'}
               </div>
             )}
-            <div
-              className="flex flex-col px-3 py-1 rounded-xl backdrop-blur-sm"
+
+            {/* 名前エリア（タップで編集） */}
+            <button
+              onClick={() => setShowEditName(true)}
+              className="flex flex-col px-3 py-1 rounded-xl backdrop-blur-sm active:scale-95 transition-all text-left"
               style={{ background: 'rgba(255,255,255,0.55)' }}
             >
               <p className="text-xs leading-tight" style={{ color: '#8B5A2B' }}>のまぼど</p>
-              <p className="text-sm font-bold leading-tight" style={{ color: '#3d1f0a' }}>
-                {profile?.displayName} さん
-              </p>
-            </div>
+              <div className="flex items-center gap-1">
+                <p className="text-sm font-bold leading-tight" style={{ color: '#3d1f0a' }}>
+                  {displayName} さん
+                </p>
+                {/* 鉛筆アイコン */}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ color: '#a07040', flexShrink: 0 }}>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+
             {subscription?.isActive && (
               <span
-                className="text-xs px-2.5 py-0.5 rounded-full font-bold tracking-wider"
+                className="text-xs px-2.5 py-0.5 rounded-full font-bold tracking-wider ml-auto"
                 style={{
                   background: 'linear-gradient(135deg, #f0c040, #c9922a)',
                   color: '#3d2008',
@@ -206,7 +248,6 @@ export default function HomePage() {
                 border: '1px solid rgba(200,160,80,0.2)',
               }}
             >
-              {/* アイコン */}
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ background: 'rgba(139,90,43,0.12)' }}
@@ -218,7 +259,6 @@ export default function HomePage() {
                   <path d="M15 13c2.761 0 5 2.239 5 5" stroke="#8B5A2B" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
                 </svg>
               </div>
-
               <div className="text-center">
                 <p className="text-xs font-medium tracking-wider" style={{ color: '#a07040' }}>
                   現在のご利用人数

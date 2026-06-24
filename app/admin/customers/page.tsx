@@ -28,7 +28,11 @@ export default async function CustomersPage({ searchParams }: Props) {
       where,
       include: {
         subscription: true,
-        visitSessions: { where: { checkedOutAt: null }, take: 1 },
+        // 最新セッション1件（退室済み・在室中どちらも含む）
+        visitSessions: {
+          orderBy: { checkedInAt: 'desc' },
+          take: 1,
+        },
         _count: { select: { visitSessions: true } },
       },
       orderBy,
@@ -69,7 +73,6 @@ export default async function CustomersPage({ searchParams }: Props) {
           </button>
         </form>
 
-        {/* 並び替えボタン */}
         <div className="flex gap-2">
           <Link
             href={sortLink('createdAt')}
@@ -94,58 +97,85 @@ export default async function CustomersPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm">
-        <table className="w-full">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="text-left text-xs text-gray-500 border-b">
               <th className="px-6 py-3">お客様</th>
               <th className="px-6 py-3">会員</th>
               <th className="px-6 py-3">状態</th>
               <th className="px-6 py-3">来店回数</th>
+              <th className="px-6 py-3">最終利用日</th>
               <th className="px-6 py-3">登録日</th>
             </tr>
           </thead>
           <tbody>
-            {customers.map((customer) => (
-              <tr key={customer.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <Link
-                    href={`/admin/customers/${customer.id}`}
-                    className="flex items-center gap-3 hover:underline"
-                  >
-                    {customer.pictureUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={customer.pictureUrl} alt="" className="w-8 h-8 rounded-full" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                        {customer.displayName?.charAt(0) ?? '?'}
+            {customers.map((customer) => {
+              const latestSession = customer.visitSessions[0]
+              const isInRoom = latestSession?.checkedOutAt === null
+              const lastVisitDate = latestSession?.checkedInAt
+
+              return (
+                <tr key={customer.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <Link
+                      href={`/admin/customers/${customer.id}`}
+                      className="flex items-center gap-3 hover:underline"
+                    >
+                      {customer.pictureUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={customer.pictureUrl} alt="" className="w-8 h-8 rounded-full" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                          {customer.displayName?.charAt(0) ?? '?'}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium text-sm">
+                          {customer.playerName || customer.displayName || '不明'}
+                        </p>
+                        {customer.playerName && customer.displayName && (
+                          <p className="text-xs text-gray-400">{customer.displayName}</p>
+                        )}
                       </div>
+                    </Link>
+                  </td>
+                  <td className="px-6 py-4">
+                    {customer.subscription?.status === 'active' ? (
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">会員</span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
                     )}
-                    <span className="font-medium">{customer.displayName ?? '不明'}</span>
-                  </Link>
-                </td>
-                <td className="px-6 py-4">
-                  {customer.subscription?.status === 'active' ? (
-                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">会員</span>
-                  ) : (
-                    <span className="text-gray-400 text-sm">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  {customer.visitSessions.length > 0 ? (
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">在室中</span>
-                  ) : (
-                    <span className="text-gray-400 text-sm">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 text-gray-700 text-sm font-medium">
-                  {customer._count.visitSessions} 回
-                </td>
-                <td className="px-6 py-4 text-gray-500 text-sm">
-                  {new Date(customer.createdAt).toLocaleDateString('ja-JP')}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isInRoom ? (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">在室中</span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700 text-sm font-medium">
+                    {customer._count.visitSessions} 回
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {lastVisitDate ? (
+                      <span className="text-gray-700">
+                        {new Date(lastVisitDate).toLocaleDateString('ja-JP', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">
+                    {new Date(customer.createdAt).toLocaleDateString('ja-JP')}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

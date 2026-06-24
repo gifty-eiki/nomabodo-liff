@@ -19,12 +19,15 @@ export async function GET(request: Request) {
     include: { subscription: true },
   })
   if (!profile) {
-    return NextResponse.json({ openSession: null, subscription: null })
+    return NextResponse.json({ openSession: null, subscription: null, surveyCompleted: false, playerName: null, currentOccupancy: 0 })
   }
 
-  const openSession = await prisma.visitSession.findFirst({
-    where: { profileId: profile.id, checkedOutAt: null },
-  })
+  const [openSession, currentOccupancy] = await Promise.all([
+    prisma.visitSession.findFirst({
+      where: { profileId: profile.id, checkedOutAt: null },
+    }),
+    prisma.visitSession.count({ where: { checkedOutAt: null } }),
+  ])
 
   let openSessionData = null
   if (openSession) {
@@ -59,5 +62,8 @@ export async function GET(request: Request) {
   return NextResponse.json({
     openSession: openSessionData,
     subscription: subscriptionData,
+    surveyCompleted: profile.surveyCompleted,
+    playerName: profile.playerName,
+    currentOccupancy,
   })
 }

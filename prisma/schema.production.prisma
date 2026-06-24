@@ -18,6 +18,12 @@ model Profile {
   pictureUrl       String?
   isAdmin          Boolean        @default(false)
   stripeCustomerId String?
+  realName         String?
+  playerName       String?
+  gender           String?
+  ageGroup         String?
+  region           String?
+  surveyCompleted  Boolean        @default(false)
   createdAt        DateTime       @default(now())
   visitSessions    VisitSession[]
   payments         Payment[]
