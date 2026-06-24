@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
-import { formatYen, formatDuration } from '@/lib/billing'
+import { formatYen } from '@/lib/billing'
 
 type Props = {
   checkedInAt: string
@@ -10,6 +10,34 @@ type Props = {
   intervalMinutes: number
   amountPerInterval: number
   onCheckedOut: () => void
+}
+
+type CheckOutResult = {
+  duration: number
+  cost: number
+}
+
+/** 滞在時間を「数字大・単位小」でレンダリング */
+function DurationDisplay({ minutes }: { minutes: number }) {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+
+  return (
+    <span className="tabular-nums" style={{ color: '#3d2008' }}>
+      {h > 0 && (
+        <>
+          <span className="text-6xl font-thin" style={{ letterSpacing: '-0.02em' }}>{h}</span>
+          <span className="text-2xl font-thin">時間</span>
+        </>
+      )}
+      {(m > 0 || h === 0) && (
+        <>
+          <span className="text-6xl font-thin" style={{ letterSpacing: '-0.02em' }}>{m}</span>
+          <span className="text-2xl font-thin">分</span>
+        </>
+      )}
+    </span>
+  )
 }
 
 export function CheckOutCard({
@@ -24,6 +52,7 @@ export function CheckOutCard({
   const [currentCost, setCurrentCost] = useState(initialCost)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<CheckOutResult | null>(null)
 
   useEffect(() => {
     const start = new Date(checkedInAt).getTime()
@@ -53,7 +82,8 @@ export function CheckOutCard({
       if (data.stripeUrl) {
         window.location.href = data.stripeUrl
       } else {
-        onCheckedOut()
+        // 退室完了 → 結果画面を表示
+        setResult({ duration: elapsed, cost: currentCost })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
@@ -67,11 +97,93 @@ export function CheckOutCard({
     minute: '2-digit',
   })
 
+  // ── 退室完了画面 ──
+  if (result) {
+    return (
+      <div className="flex flex-col items-center gap-5 w-full max-w-xs">
+        {/* ロゴ */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.jpg" alt="のまぼど" className="w-24 h-24 object-contain drop-shadow-2xl" />
+
+        {/* 完了カード */}
+        <div
+          className="w-full backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(160deg, rgba(255,248,235,0.97) 0%, rgba(254,243,210,0.97) 100%)',
+            boxShadow: '0 8px 40px rgba(80,40,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
+            border: '1px solid rgba(200,150,80,0.25)',
+          }}
+        >
+          {/* ヘッダー */}
+          <div
+            className="px-6 py-4 text-center"
+            style={{
+              background: 'rgba(139,90,43,0.08)',
+              borderBottom: '1px solid rgba(139,90,43,0.12)',
+            }}
+          >
+            <p className="text-lg font-bold" style={{ color: '#5c2e00' }}>
+              🎉 ありがとうございました！
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: '#a07040' }}>
+              またのご来店をお待ちしています
+            </p>
+          </div>
+
+          <div className="px-6 py-6 text-center">
+            {/* 滞在時間 */}
+            <div className="mb-5">
+              <p className="text-xs font-medium tracking-widest mb-2" style={{ color: '#a07040' }}>
+                滞在時間
+              </p>
+              <DurationDisplay minutes={result.duration} />
+            </div>
+
+            {/* セパレーター */}
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(139,90,43,0.2))' }} />
+              <span className="text-amber-400 text-sm">✦</span>
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, rgba(139,90,43,0.2))' }} />
+            </div>
+
+            {/* 料金 */}
+            <div>
+              <p className="text-xs font-medium tracking-widest mb-1.5" style={{ color: '#a07040' }}>
+                ご利用料金
+              </p>
+              <p
+                className="text-4xl font-bold"
+                style={{ color: '#7a3e10', textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}
+              >
+                {formatYen(result.cost)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 閉じるボタン */}
+        <button
+          onClick={onCheckedOut}
+          className="w-full py-4 rounded-2xl font-bold text-lg tracking-widest shadow-xl active:scale-95 transition-all duration-200 touch-manipulation"
+          style={{
+            background: 'linear-gradient(160deg, #5c3317 0%, #3d1f0a 100%)',
+            boxShadow: '0 4px 24px rgba(60,30,0,0.45), inset 0 1px 0 rgba(255,200,100,0.15)',
+            color: '#f5deb3',
+            border: '1px solid rgba(139,90,43,0.4)',
+          }}
+        >
+          閉じる
+        </button>
+      </div>
+    )
+  }
+
+  // ── 通常の退室前画面 ──
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-xs">
       {/* ロゴ（小さめ） */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.jpg" alt="のまぼど" className="w-24 h-24 object-contain rounded-full drop-shadow-2xl" style={{ border: '2px solid rgba(245,222,179,0.3)' }} />
+      <img src="/logo.jpg" alt="のまぼど" className="w-24 h-24 object-contain drop-shadow-2xl" style={{ border: '2px solid rgba(245,222,179,0.3)' }} />
 
       {/* 滞在情報カード */}
       <div
@@ -100,12 +212,7 @@ export function CheckOutCard({
             <p className="text-xs font-medium tracking-widest mb-2" style={{ color: '#a07040' }}>
               滞在時間
             </p>
-            <p
-              className="text-6xl font-thin tabular-nums"
-              style={{ color: '#3d2008', letterSpacing: '-0.02em' }}
-            >
-              {formatDuration(elapsed)}
-            </p>
+            <DurationDisplay minutes={elapsed} />
           </div>
 
           {/* セパレーター */}
@@ -125,9 +232,6 @@ export function CheckOutCard({
               style={{ color: '#7a3e10', textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}
             >
               {formatYen(currentCost)}
-            </p>
-            <p className="text-xs mt-2" style={{ color: 'rgba(100,65,30,0.5)' }}>
-              {intervalMinutes}分ごとに {formatYen(amountPerInterval)}
             </p>
           </div>
         </div>

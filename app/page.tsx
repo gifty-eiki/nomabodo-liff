@@ -163,8 +163,13 @@ export default function HomePage() {
                   BOARD GAME CAFÉ ☕
                 </p>
                 <p
-                  className="text-sm font-medium text-center"
-                  style={{ color: '#5c2e00', textShadow: '0 1px 3px rgba(255,255,255,0.5)' }}
+                  className="text-sm font-bold text-center px-4 py-1.5 rounded-full"
+                  style={{
+                    color: '#4a2000',
+                    background: 'rgba(255,240,200,0.80)',
+                    backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(180,120,40,0.35)',
+                  }}
                 >
                   ✦ ボードゲームでつながる、最高の時間を。✦
                 </p>
@@ -195,7 +200,7 @@ export default function HomePage() {
         <footer className="px-4 pb-8">
           {!openSession && (
             <div
-              className="rounded-2xl px-5 py-4 flex items-center gap-4 shadow-xl backdrop-blur-sm"
+              className="rounded-2xl px-5 py-4 flex items-center justify-center gap-4 shadow-xl backdrop-blur-sm"
               style={{
                 background: 'rgba(255,252,245,0.88)',
                 border: '1px solid rgba(200,160,80,0.2)',
@@ -214,7 +219,7 @@ export default function HomePage() {
                 </svg>
               </div>
 
-              <div className="flex-1">
+              <div className="text-center">
                 <p className="text-xs font-medium tracking-wider" style={{ color: '#a07040' }}>
                   現在のご利用人数
                 </p>
@@ -224,24 +229,6 @@ export default function HomePage() {
                     / {MAX_CAPACITY}名
                   </span>
                 </p>
-              </div>
-
-              {/* 混雑度バー */}
-              <div className="w-16 flex flex-col items-end gap-1">
-                <p className="text-xs" style={{ color: '#a07040' }}>
-                  {Math.round((currentOccupancy / MAX_CAPACITY) * 100)}%
-                </p>
-                <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(139,90,43,0.12)' }}>
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min((currentOccupancy / MAX_CAPACITY) * 100, 100)}%`,
-                      background: currentOccupancy / MAX_CAPACITY > 0.8
-                        ? 'linear-gradient(to right, #e67e22, #e74c3c)'
-                        : 'linear-gradient(to right, #c9922a, #8B5E3C)',
-                    }}
-                  />
-                </div>
               </div>
             </div>
           )}
