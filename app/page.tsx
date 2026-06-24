@@ -53,10 +53,20 @@ export default function HomePage() {
 
   if (!isReady || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-amber-50">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-amber-800 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-amber-800 text-sm">読み込み中...</p>
+      <div
+        className="flex items-center justify-center min-h-screen"
+        style={{
+          backgroundImage: "url('/background.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div
+          className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl backdrop-blur-sm"
+          style={{ background: 'rgba(255,248,230,0.85)' }}
+        >
+          <div className="w-8 h-8 border-2 border-amber-700 border-t-transparent rounded-full animate-spin" />
+          <p className="text-amber-900 text-sm font-medium">読み込み中...</p>
         </div>
       </div>
     )
@@ -78,51 +88,50 @@ export default function HomePage() {
         style={{
           backgroundImage: "url('/background.png')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center top',
         }}
-      >
-        {/* オーバーレイ */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/50" />
-      </div>
+      />
+      {/* 下部に向けて薄いグラデーション（フッターを読みやすく） */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
 
       {/* コンテンツ */}
       <div className="relative z-10 flex flex-col min-h-screen">
 
         {/* ヘッダー：ユーザー情報 */}
-        <header className="px-4 pt-8 pb-2">
-          <div
-            className="flex items-center gap-3 px-4 py-2.5 rounded-2xl backdrop-blur-sm"
-            style={{
-              background: 'rgba(0,0,0,0.25)',
-              border: '1px solid rgba(255,255,255,0.12)',
-            }}
-          >
+        <header className="px-4 pt-6 pb-2">
+          <div className="flex items-center gap-2.5">
             {profile?.pictureUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={profile.pictureUrl}
                 alt={profile.displayName}
-                className="w-9 h-9 rounded-full"
-                style={{ border: '2px solid rgba(200,160,80,0.6)' }}
+                className="w-9 h-9 rounded-full shadow-md"
+                style={{ border: '2px solid rgba(255,255,255,0.8)' }}
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-amber-100 text-sm font-bold"
-                style={{ background: 'rgba(139,90,43,0.5)' }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shadow-md"
+                style={{ background: 'rgba(139,90,43,0.7)', color: '#f5deb3' }}
               >
                 {profile?.displayName?.charAt(0) ?? '?'}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <p className="text-white/50 text-xs tracking-widest">のまぼど</p>
-              <p className="text-white text-sm font-medium leading-tight truncate">{profile?.displayName} さん</p>
+            <div
+              className="flex flex-col px-3 py-1 rounded-xl backdrop-blur-sm"
+              style={{ background: 'rgba(255,255,255,0.55)' }}
+            >
+              <p className="text-xs leading-tight" style={{ color: '#8B5A2B' }}>のまぼど</p>
+              <p className="text-sm font-bold leading-tight" style={{ color: '#3d1f0a' }}>
+                {profile?.displayName} さん
+              </p>
             </div>
             {subscription?.isActive && (
               <span
-                className="text-xs px-2.5 py-0.5 rounded-full font-bold tracking-wider flex-shrink-0"
+                className="text-xs px-2.5 py-0.5 rounded-full font-bold tracking-wider"
                 style={{
                   background: 'linear-gradient(135deg, #f0c040, #c9922a)',
                   color: '#3d2008',
+                  boxShadow: '0 2px 8px rgba(200,140,0,0.3)',
                 }}
               >
                 会員
@@ -132,26 +141,39 @@ export default function HomePage() {
         </header>
 
         {/* メインコンテンツ */}
-        <main className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
+        <main className="flex-1 flex flex-col items-center justify-center px-6 gap-3">
 
           {!openSession && (
             <>
               {/* ロゴ */}
-              <div className="flex flex-col items-center gap-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo.jpg"
-                  alt="のまぼど"
-                  className="w-44 h-44 object-contain drop-shadow-xl"
-                />
-                <p className="text-white/90 text-xs tracking-widest font-medium">BOARD GAME CAFÉ ☕</p>
-                <p className="text-white text-sm font-medium text-center drop-shadow">
-                  ボードゲームでつながる、最高の時間を。
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.jpg"
+                alt="のまぼど"
+                className="w-72 h-72 object-contain"
+                style={{ filter: 'drop-shadow(0 4px 16px rgba(80,40,0,0.25))' }}
+              />
+
+              {/* サブテキスト */}
+              <div className="flex flex-col items-center gap-1 -mt-2">
+                <p
+                  className="text-sm font-bold tracking-widest"
+                  style={{ color: '#8B4513', textShadow: '0 1px 3px rgba(255,255,255,0.6)' }}
+                >
+                  BOARD GAME CAFÉ ☕
+                </p>
+                <p
+                  className="text-sm font-medium text-center"
+                  style={{ color: '#5c2e00', textShadow: '0 1px 3px rgba(255,255,255,0.5)' }}
+                >
+                  ✦ ボードゲームでつながる、最高の時間を。✦
                 </p>
               </div>
 
               {/* チェックインボタン */}
-              <CheckInButton onCheckedIn={() => fetchStatus()} />
+              <div className="mt-2">
+                <CheckInButton onCheckedIn={() => fetchStatus()} />
+              </div>
             </>
           )}
 
@@ -169,37 +191,54 @@ export default function HomePage() {
           )}
         </main>
 
-        {/* フッター：在室人数バー */}
+        {/* フッター：在室人数 */}
         <footer className="px-4 pb-8">
           {!openSession && (
             <div
-              className="backdrop-blur-md rounded-2xl px-5 py-3.5 flex items-center gap-3 shadow-xl"
+              className="rounded-2xl px-5 py-4 flex items-center gap-4 shadow-xl backdrop-blur-sm"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,248,230,0.88), rgba(250,235,200,0.88))',
-                border: '1px solid rgba(200,150,80,0.25)',
-                boxShadow: '0 4px 24px rgba(60,30,0,0.2)',
+                background: 'rgba(255,252,245,0.88)',
+                border: '1px solid rgba(200,160,80,0.2)',
               }}
             >
-              <div className="text-2xl">👥</div>
+              {/* アイコン */}
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(139,90,43,0.12)' }}
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <circle cx="9" cy="7" r="3" fill="#8B5A2B" opacity="0.8"/>
+                  <circle cx="15" cy="7" r="3" fill="#8B5A2B" opacity="0.5"/>
+                  <path d="M3 19c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#8B5A2B" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
+                  <path d="M15 13c2.761 0 5 2.239 5 5" stroke="#8B5A2B" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+                </svg>
+              </div>
+
               <div className="flex-1">
                 <p className="text-xs font-medium tracking-wider" style={{ color: '#a07040' }}>
                   現在のご利用人数
                 </p>
-                <p className="text-base font-bold" style={{ color: '#3d2008' }}>
+                <p className="text-2xl font-bold leading-tight" style={{ color: '#3d1f0a' }}>
                   {currentOccupancy}
-                  <span className="font-normal" style={{ color: 'rgba(80,50,20,0.4)' }}> / {MAX_CAPACITY}名</span>
+                  <span className="text-base font-normal ml-1" style={{ color: 'rgba(80,50,20,0.45)' }}>
+                    / {MAX_CAPACITY}名
+                  </span>
                 </p>
               </div>
+
               {/* 混雑度バー */}
-              <div className="w-20">
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(139,90,43,0.15)' }}>
+              <div className="w-16 flex flex-col items-end gap-1">
+                <p className="text-xs" style={{ color: '#a07040' }}>
+                  {Math.round((currentOccupancy / MAX_CAPACITY) * 100)}%
+                </p>
+                <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'rgba(139,90,43,0.12)' }}>
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${Math.min((currentOccupancy / MAX_CAPACITY) * 100, 100)}%`,
                       background: currentOccupancy / MAX_CAPACITY > 0.8
-                        ? 'linear-gradient(to right, #c0392b, #e74c3c)'
-                        : 'linear-gradient(to right, #8B5E3C, #c9922a)',
+                        ? 'linear-gradient(to right, #e67e22, #e74c3c)'
+                        : 'linear-gradient(to right, #c9922a, #8B5E3C)',
                     }}
                   />
                 </div>
