@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyLineToken, getLineUserId } from '@/lib/line'
-import { getVisitCost } from '@/lib/billing'
+import { getPlanCost } from '@/lib/billing'
 import { getWeekendHolidaySurcharge } from '@/lib/holidays'
 import { stripe } from '@/lib/stripe'
 
@@ -45,14 +45,16 @@ export async function POST(request: Request) {
     (profile.subscription.currentPeriodEnd == null ||
       profile.subscription.currentPeriodEnd > now)
 
-  const configs = await prisma.pricingConfig.findMany({
+  const plans = await prisma.pricePlan.findMany({
     where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    select: { label: true, maxMinutes: true, amountYen: true },
   })
 
   // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
   const weekendSurcharge = getWeekendHolidaySurcharge(session.checkedInAt, isSubscriber)
   const amountYen =
-    getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent) + weekendSurcharge
+    getPlanCost(durationMinutes, isSubscriber, plans, profile.isStudent) + weekendSurcharge
   const billingType = isSubscriber ? 'subscription' : 'pay_per_use'
 
   const updatedSession = await prisma.visitSession.update({

@@ -7,12 +7,19 @@ import { CheckOutCard } from '@/components/customer/CheckOutCard'
 import { SurveyModal } from '@/components/customer/SurveyModal'
 import { EditPlayerNameModal } from '@/components/customer/EditPlayerNameModal'
 
+type PlanTier = {
+  label: string
+  maxMinutes: number | null
+  amountYen: number
+}
+
 type OpenSession = {
   id: string
   checkedInAt: string
   estimatedCost: number
-  intervalMinutes: number
-  amountPerInterval: number
+  plans: PlanTier[]
+  currentPlanLabel: string | null
+  isSubscriber: boolean
   isStudent: boolean
   weekendSurcharge: number
 }
@@ -230,8 +237,8 @@ export default function HomePage() {
             <CheckOutCard
               checkedInAt={openSession.checkedInAt}
               estimatedCost={openSession.estimatedCost}
-              intervalMinutes={openSession.intervalMinutes}
-              amountPerInterval={openSession.amountPerInterval}
+              plans={openSession.plans}
+              isSubscriber={openSession.isSubscriber}
               isStudent={openSession.isStudent}
               weekendSurcharge={openSession.weekendSurcharge}
               onCheckedOut={() => {

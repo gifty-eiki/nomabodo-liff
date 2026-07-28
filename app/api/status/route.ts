@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyLineToken, getLineUserId } from '@/lib/line'
-import { getVisitCost } from '@/lib/billing'
+import { getPlanCost, pickPlan } from '@/lib/billing'
 import { getWeekendHolidaySurcharge } from '@/lib/holidays'
 
 export async function GET(request: Request) {
@@ -38,20 +38,23 @@ export async function GET(request: Request) {
       Math.floor((now.getTime() - openSession.checkedInAt.getTime()) / 60000)
     )
     const isSubscriber = profile.subscription?.status === 'active'
-    const configs = await prisma.pricingConfig.findMany({ where: { isActive: true } })
-    const config = configs.find(
-      (c) => c.appliesTo === (isSubscriber ? 'subscriber' : 'pay_per_use')
-    )
+    const plans = await prisma.pricePlan.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { label: true, maxMinutes: true, amountYen: true },
+    })
     // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
     const weekendSurcharge = getWeekendHolidaySurcharge(openSession.checkedInAt, isSubscriber)
+    const currentPlan = isSubscriber ? null : pickPlan(durationMinutes, plans)
     openSessionData = {
       id: openSession.id,
       checkedInAt: openSession.checkedInAt.toISOString(),
       estimatedCost:
-        getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent) +
+        getPlanCost(durationMinutes, isSubscriber, plans, profile.isStudent) +
         weekendSurcharge,
-      intervalMinutes: config?.intervalMinutes ?? 30,
-      amountPerInterval: config?.amountYen ?? 500,
+      plans,
+      currentPlanLabel: isSubscriber ? '会員' : currentPlan?.label ?? null,
+      isSubscriber,
       isStudent: profile.isStudent,
       weekendSurcharge,
     }

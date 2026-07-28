@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
-import { formatYen, applyStudentDiscount } from '@/lib/billing'
+import { formatYen, applyStudentDiscount, getPlanCost, pickPlan } from '@/lib/billing'
+import type { PlanTier } from '@/lib/billing'
 
 type Props = {
   checkedInAt: string
   estimatedCost: number
-  intervalMinutes: number
-  amountPerInterval: number
+  plans: PlanTier[]
+  isSubscriber: boolean
   isStudent: boolean
   weekendSurcharge: number
   onCheckedOut: () => void
@@ -17,6 +18,7 @@ type Props = {
 type CheckOutResult = {
   duration: number
   cost: number
+  planLabel: string | null
 }
 
 /** 滞在時間を「数字大・単位小」でレンダリング */
@@ -45,8 +47,8 @@ function DurationDisplay({ minutes }: { minutes: number }) {
 export function CheckOutCard({
   checkedInAt,
   estimatedCost: initialCost,
-  intervalMinutes,
-  amountPerInterval,
+  plans,
+  isSubscriber,
   isStudent,
   weekendSurcharge,
   onCheckedOut,
@@ -54,6 +56,7 @@ export function CheckOutCard({
   const { accessToken } = useLiff()
   const [elapsed, setElapsed] = useState(0)
   const [currentCost, setCurrentCost] = useState(initialCost)
+  const [planLabel, setPlanLabel] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<CheckOutResult | null>(null)
@@ -62,17 +65,17 @@ export function CheckOutCard({
     const start = new Date(checkedInAt).getTime()
     function tick() {
       const now = Date.now()
-      const minutes = Math.floor((now - start) / 60000)
+      // 入室した時点（0分）でも最低1分＝最初のプランが適用される
+      const minutes = Math.max(1, Math.floor((now - start) / 60000))
       setElapsed(minutes)
-      // 入室した時点（0分）から最低1ブロック分を課金・表示する
-      const units = Math.max(1, Math.ceil(minutes / intervalMinutes))
-      // 利用料に学割（半額）を適用し、土日祝の一律加算はそのまま上乗せする
-      setCurrentCost(applyStudentDiscount(units * amountPerInterval, isStudent) + weekendSurcharge)
+      // 滞在時間からプランを判定 → 学割（半額）→ 土日祝の一律加算を上乗せ
+      setCurrentCost(getPlanCost(minutes, isSubscriber, plans, isStudent) + weekendSurcharge)
+      setPlanLabel(isSubscriber ? '会員' : pickPlan(minutes, plans)?.label ?? null)
     }
     tick()
     const id = setInterval(tick, 30000)
     return () => clearInterval(id)
-  }, [checkedInAt, intervalMinutes, amountPerInterval, isStudent, weekendSurcharge])
+  }, [checkedInAt, plans, isSubscriber, isStudent, weekendSurcharge])
 
   async function handleCheckOut() {
     if (!accessToken) return
@@ -89,7 +92,7 @@ export function CheckOutCard({
         window.location.href = data.stripeUrl
       } else {
         // 退室完了 → 結果画面を表示
-        setResult({ duration: elapsed, cost: currentCost })
+        setResult({ duration: elapsed, cost: currentCost, planLabel })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
@@ -160,6 +163,11 @@ export function CheckOutCard({
               <p className="text-xs font-medium tracking-widest mb-1.5" style={{ color: '#a07040' }}>
                 ご利用料金
               </p>
+              {result.planLabel && (
+                <p className="text-sm font-bold mb-1" style={{ color: '#7a3e10' }}>
+                  {result.planLabel === '会員' ? '会員（無料）' : `${result.planLabel}プラン`}
+                </p>
+              )}
               <p
                 className="text-4xl font-bold"
                 style={{ color: '#7a3e10', textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}
@@ -254,6 +262,11 @@ export function CheckOutCard({
             <p className="text-xs font-medium tracking-widest mb-1.5" style={{ color: '#a07040' }}>
               料金（目安）
             </p>
+            {planLabel && (
+              <p className="text-sm font-bold mb-1" style={{ color: '#7a3e10' }}>
+                {planLabel === '会員' ? '会員（無料）' : `${planLabel}プラン`}
+              </p>
+            )}
             <p
               className="text-4xl font-bold"
               style={{ color: '#7a3e10', textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}

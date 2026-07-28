@@ -3,28 +3,19 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  const existing = await prisma.pricingConfig.count()
+  const existing = await prisma.pricePlan.count()
   if (existing > 0) {
-    console.log('Seed data already exists, skipping')
-    return
+    console.log('PricePlan seed already exists, skipping plans')
+  } else {
+    // 料金プラン（滞在時間で自動判定）
+    await prisma.pricePlan.createMany({
+      data: [
+        { label: '2時間', maxMinutes: 120, amountYen: 2000, sortOrder: 1 },
+        { label: '4時間', maxMinutes: 240, amountYen: 3000, sortOrder: 2 },
+        { label: 'フリー', maxMinutes: null, amountYen: 3500, sortOrder: 3 },
+      ],
+    })
   }
-
-  await prisma.pricingConfig.create({
-    data: {
-      label: '通常料金 30分',
-      intervalMinutes: 30,
-      amountYen: 500,
-      appliesTo: 'pay_per_use',
-    },
-  })
-  await prisma.pricingConfig.create({
-    data: {
-      label: '会員料金 30分',
-      intervalMinutes: 30,
-      amountYen: 0,
-      appliesTo: 'subscriber',
-    },
-  })
 
   // 開発用管理者ユーザーを作成
   await prisma.profile.upsert({

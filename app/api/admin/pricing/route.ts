@@ -8,10 +8,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const configs = await prisma.pricingConfig.findMany({
-    orderBy: { appliesTo: 'asc' },
+  const plans = await prisma.pricePlan.findMany({
+    orderBy: { sortOrder: 'asc' },
   })
-  return NextResponse.json({ configs })
+  return NextResponse.json({ plans })
 }
 
 export async function PUT(request: Request) {
@@ -21,16 +21,20 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json()
-  const { id, label, intervalMinutes, amountYen } = body
+  const { id, label, maxMinutes, amountYen } = body
 
-  if (!id || !label || intervalMinutes == null || amountYen == null) {
+  // maxMinutes は null（フリー）を許容。それ以外は数値必須。
+  if (!id || !label || amountYen == null) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
+  if (maxMinutes !== null && typeof maxMinutes !== 'number') {
+    return NextResponse.json({ error: 'Invalid maxMinutes' }, { status: 400 })
+  }
 
-  const config = await prisma.pricingConfig.update({
+  const plan = await prisma.pricePlan.update({
     where: { id },
-    data: { label, intervalMinutes, amountYen },
+    data: { label, maxMinutes, amountYen },
   })
 
-  return NextResponse.json({ config })
+  return NextResponse.json({ plan })
 }

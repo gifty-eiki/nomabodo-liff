@@ -72,6 +72,7 @@ model Subscription {
   updatedAt            DateTime  @updatedAt
 }
 
+// ⚠️ 旧・従量課金(30分ごと)の設定。2026-07-28にプラン制(PricePlan)へ移行したため未使用。
 model PricingConfig {
   id              String   @id @default(cuid())
   label           String
@@ -80,4 +81,15 @@ model PricingConfig {
   appliesTo       String   @default("pay_per_use")
   isActive        Boolean  @default(true)
   updatedAt       DateTime @updatedAt
+}
+
+// 料金プラン（滞在時間で自動判定する段階制）
+model PricePlan {
+  id         String   @id @default(cuid())
+  label      String
+  maxMinutes Int?     // null = フリー（上限なし）
+  amountYen  Int
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
 }

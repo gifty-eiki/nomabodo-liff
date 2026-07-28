@@ -2,21 +2,21 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { PricingConfig } from '@prisma/client'
+import type { PricePlan } from '@prisma/client'
 
-export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
+export function PricingEditor({ plans }: { plans: PricePlan[] }) {
   const router = useRouter()
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
-  function startEdit(config: PricingConfig) {
-    setEditing(config.id)
+  function startEdit(plan: PricePlan) {
+    setEditing(plan.id)
     setForm({
-      label: config.label,
-      intervalMinutes: String(config.intervalMinutes),
-      amountYen: String(config.amountYen),
+      label: plan.label,
+      maxMinutes: plan.maxMinutes == null ? '' : String(plan.maxMinutes),
+      amountYen: String(plan.amountYen),
     })
   }
 
@@ -24,13 +24,15 @@ export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
     setSaving(true)
     setMessage(null)
     try {
+      const trimmed = form.maxMinutes.trim()
       const res = await fetch('/api/admin/pricing', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id,
           label: form.label,
-          intervalMinutes: parseInt(form.intervalMinutes),
+          // 空欄はフリー（上限なし = null）
+          maxMinutes: trimmed === '' ? null : parseInt(trimmed),
           amountYen: parseInt(form.amountYen),
         }),
       })
@@ -38,6 +40,8 @@ export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
         setMessage('保存しました')
         setEditing(null)
         router.refresh()
+      } else {
+        setMessage('保存に失敗しました')
       }
     } finally {
       setSaving(false)
@@ -54,48 +58,49 @@ export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
       <table className="w-full">
         <thead>
           <tr className="text-left text-xs text-gray-500 border-b">
-            <th className="px-6 py-3">対象</th>
-            <th className="px-6 py-3">ラベル</th>
-            <th className="px-6 py-3">時間単位（分）</th>
+            <th className="px-6 py-3">プラン名</th>
+            <th className="px-6 py-3">上限時間（分）</th>
             <th className="px-6 py-3">料金（円）</th>
             <th className="px-6 py-3"></th>
           </tr>
         </thead>
         <tbody>
-          {configs.map((config) => (
-            <tr key={config.id} className="border-b last:border-0">
-              <td className="px-6 py-4 text-sm text-gray-500">
-                {config.appliesTo === 'pay_per_use' ? '通常' : '会員'}
-              </td>
+          {plans.map((plan) => (
+            <tr key={plan.id} className="border-b last:border-0">
               <td className="px-6 py-4">
-                {editing === config.id ? (
+                {editing === plan.id ? (
                   <input
                     value={form.label}
-                    onChange={(e) =>
-                      setForm({ ...form, label: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, label: e.target.value })}
                     className="border rounded px-2 py-1 text-sm w-40"
                   />
                 ) : (
-                  <span className="text-sm">{config.label}</span>
+                  <span className="text-sm font-medium">{plan.label}</span>
                 )}
               </td>
               <td className="px-6 py-4">
-                {editing === config.id ? (
+                {editing === plan.id ? (
                   <input
                     type="number"
-                    value={form.intervalMinutes}
+                    value={form.maxMinutes}
+                    placeholder="空欄=フリー"
                     onChange={(e) =>
-                      setForm({ ...form, intervalMinutes: e.target.value })
+                      setForm({ ...form, maxMinutes: e.target.value })
                     }
-                    className="border rounded px-2 py-1 text-sm w-24"
+                    className="border rounded px-2 py-1 text-sm w-32"
                   />
                 ) : (
-                  <span className="text-sm">{config.intervalMinutes} 分</span>
+                  <span className="text-sm">
+                    {plan.maxMinutes == null ? (
+                      <span className="text-amber-600 font-medium">フリー（上限なし）</span>
+                    ) : (
+                      `${plan.maxMinutes} 分まで`
+                    )}
+                  </span>
                 )}
               </td>
               <td className="px-6 py-4">
-                {editing === config.id ? (
+                {editing === plan.id ? (
                   <input
                     type="number"
                     value={form.amountYen}
@@ -105,14 +110,14 @@ export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
                     className="border rounded px-2 py-1 text-sm w-24"
                   />
                 ) : (
-                  <span className="text-sm">¥{config.amountYen.toLocaleString()}</span>
+                  <span className="text-sm">¥{plan.amountYen.toLocaleString()}</span>
                 )}
               </td>
               <td className="px-6 py-4">
-                {editing === config.id ? (
+                {editing === plan.id ? (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => save(config.id)}
+                      onClick={() => save(plan.id)}
                       disabled={saving}
                       className="px-3 py-1 bg-green-500 text-white text-sm rounded-lg disabled:opacity-50"
                     >
@@ -127,7 +132,7 @@ export function PricingEditor({ configs }: { configs: PricingConfig[] }) {
                   </div>
                 ) : (
                   <button
-                    onClick={() => startEdit(config)}
+                    onClick={() => startEdit(plan)}
                     className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg"
                   >
                     編集
