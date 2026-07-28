@@ -62,7 +62,8 @@ export function CheckOutCard({
       const now = Date.now()
       const minutes = Math.floor((now - start) / 60000)
       setElapsed(minutes)
-      const units = Math.ceil(minutes / intervalMinutes)
+      // 入室した時点（0分）から最低1ブロック分を課金・表示する
+      const units = Math.max(1, Math.ceil(minutes / intervalMinutes))
       setCurrentCost(applyStudentDiscount(units * amountPerInterval, isStudent))
     }
     tick()
@@ -126,6 +127,9 @@ export function CheckOutCard({
           >
             <p className="text-lg font-bold" style={{ color: '#5c2e00' }}>
               🎉 ありがとうございました！
+            </p>
+            <p className="text-sm font-bold mt-1.5" style={{ color: '#b23b00' }}>
+              お会計はレジ（スタッフ）までお願いします
             </p>
             <p className="text-xs mt-0.5" style={{ color: '#a07040' }}>
               またのご来店をお待ちしています
