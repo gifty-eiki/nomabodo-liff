@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyLineToken, getLineUserId } from '@/lib/line'
 import { getVisitCost } from '@/lib/billing'
+import { getWeekendHolidaySurcharge } from '@/lib/holidays'
 
 export async function GET(request: Request) {
   const token = getLineUserId(request)
@@ -41,13 +42,18 @@ export async function GET(request: Request) {
     const config = configs.find(
       (c) => c.appliesTo === (isSubscriber ? 'subscriber' : 'pay_per_use')
     )
+    // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
+    const weekendSurcharge = getWeekendHolidaySurcharge(openSession.checkedInAt, isSubscriber)
     openSessionData = {
       id: openSession.id,
       checkedInAt: openSession.checkedInAt.toISOString(),
-      estimatedCost: getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent),
+      estimatedCost:
+        getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent) +
+        weekendSurcharge,
       intervalMinutes: config?.intervalMinutes ?? 30,
       amountPerInterval: config?.amountYen ?? 500,
       isStudent: profile.isStudent,
+      weekendSurcharge,
     }
   }
 

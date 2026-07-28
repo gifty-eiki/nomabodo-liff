@@ -10,6 +10,7 @@ type Props = {
   intervalMinutes: number
   amountPerInterval: number
   isStudent: boolean
+  weekendSurcharge: number
   onCheckedOut: () => void
 }
 
@@ -47,6 +48,7 @@ export function CheckOutCard({
   intervalMinutes,
   amountPerInterval,
   isStudent,
+  weekendSurcharge,
   onCheckedOut,
 }: Props) {
   const { accessToken } = useLiff()
@@ -64,12 +66,13 @@ export function CheckOutCard({
       setElapsed(minutes)
       // 入室した時点（0分）から最低1ブロック分を課金・表示する
       const units = Math.max(1, Math.ceil(minutes / intervalMinutes))
-      setCurrentCost(applyStudentDiscount(units * amountPerInterval, isStudent))
+      // 利用料に学割（半額）を適用し、土日祝の一律加算はそのまま上乗せする
+      setCurrentCost(applyStudentDiscount(units * amountPerInterval, isStudent) + weekendSurcharge)
     }
     tick()
     const id = setInterval(tick, 30000)
     return () => clearInterval(id)
-  }, [checkedInAt, intervalMinutes, amountPerInterval, isStudent])
+  }, [checkedInAt, intervalMinutes, amountPerInterval, isStudent, weekendSurcharge])
 
   async function handleCheckOut() {
     if (!accessToken) return
@@ -163,14 +166,24 @@ export function CheckOutCard({
               >
                 {formatYen(result.cost)}
               </p>
-              {isStudent && (
-                <span
-                  className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full"
-                  style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
-                >
-                  🎓 学割適用（半額）
-                </span>
-              )}
+              <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+                {isStudent && (
+                  <span
+                    className="inline-block text-xs font-bold px-3 py-1 rounded-full"
+                    style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
+                  >
+                    🎓 学割適用（半額）
+                  </span>
+                )}
+                {weekendSurcharge > 0 && (
+                  <span
+                    className="inline-block text-xs font-bold px-3 py-1 rounded-full"
+                    style={{ background: 'rgba(217,119,6,0.12)', color: '#b45309', border: '1px solid rgba(217,119,6,0.35)' }}
+                  >
+                    土日祝料金 +¥500込み
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -247,14 +260,24 @@ export function CheckOutCard({
             >
               {formatYen(currentCost)}
             </p>
-            {isStudent && (
-              <span
-                className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full"
-                style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
-              >
-                🎓 学割適用（半額）
-              </span>
-            )}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+              {isStudent && (
+                <span
+                  className="inline-block text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
+                >
+                  🎓 学割適用（半額）
+                </span>
+              )}
+              {weekendSurcharge > 0 && (
+                <span
+                  className="inline-block text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ background: 'rgba(217,119,6,0.12)', color: '#b45309', border: '1px solid rgba(217,119,6,0.35)' }}
+                >
+                  土日祝料金 +¥500込み
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>

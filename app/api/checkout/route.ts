@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyLineToken, getLineUserId } from '@/lib/line'
 import { getVisitCost } from '@/lib/billing'
+import { getWeekendHolidaySurcharge } from '@/lib/holidays'
 import { stripe } from '@/lib/stripe'
 
 export async function POST(request: Request) {
@@ -48,7 +49,10 @@ export async function POST(request: Request) {
     where: { isActive: true },
   })
 
-  const amountYen = getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent)
+  // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
+  const weekendSurcharge = getWeekendHolidaySurcharge(session.checkedInAt, isSubscriber)
+  const amountYen =
+    getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent) + weekendSurcharge
   const billingType = isSubscriber ? 'subscription' : 'pay_per_use'
 
   const updatedSession = await prisma.visitSession.update({

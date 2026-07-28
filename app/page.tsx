@@ -14,6 +14,7 @@ type OpenSession = {
   intervalMinutes: number
   amountPerInterval: number
   isStudent: boolean
+  weekendSurcharge: number
 }
 
 type SubscriptionStatus = {
@@ -232,6 +233,7 @@ export default function HomePage() {
               intervalMinutes={openSession.intervalMinutes}
               amountPerInterval={openSession.amountPerInterval}
               isStudent={openSession.isStudent}
+              weekendSurcharge={openSession.weekendSurcharge}
               onCheckedOut={() => {
                 setOpenSession(null)
                 fetchStatus()
