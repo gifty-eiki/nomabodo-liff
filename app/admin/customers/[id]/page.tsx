@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { formatYen, formatDuration } from '@/lib/billing'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { StudentToggle } from '@/components/admin/StudentToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,18 +50,34 @@ export default async function CustomerDetailPage({ params }: Props) {
           <p className="text-gray-400 text-sm">
             登録日: {new Date(customer.createdAt).toLocaleDateString('ja-JP')}
           </p>
-          {customer.subscription?.status === 'active' && (
-            <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-              会員（
-              {customer.subscription.currentPeriodEnd
-                ? new Date(
-                    customer.subscription.currentPeriodEnd
-                  ).toLocaleDateString('ja-JP') + ' まで'
-                : ''}
-              ）
-            </span>
-          )}
+          <div className="flex items-center gap-2 mt-1">
+            {customer.subscription?.status === 'active' && (
+              <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                会員（
+                {customer.subscription.currentPeriodEnd
+                  ? new Date(
+                      customer.subscription.currentPeriodEnd
+                    ).toLocaleDateString('ja-JP') + ' まで'
+                  : ''}
+                ）
+              </span>
+            )}
+            {customer.isStudent && (
+              <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">
+                🎓 学割
+              </span>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* 学割設定 */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 className="font-bold text-gray-800 mb-1">学割設定</h2>
+        <p className="text-xs text-gray-400 mb-3">
+          ONにすると、この顧客の退室時の料金が自動で半額になります。
+        </p>
+        <StudentToggle customerId={customer.id} initialIsStudent={customer.isStudent} />
       </div>
 
       {/* 来店履歴 */}

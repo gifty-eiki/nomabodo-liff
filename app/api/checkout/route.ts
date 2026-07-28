@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     where: { isActive: true },
   })
 
-  const amountYen = getVisitCost(durationMinutes, isSubscriber, configs)
+  const amountYen = getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent)
   const billingType = isSubscriber ? 'subscription' : 'pay_per_use'
 
   const updatedSession = await prisma.visitSession.update({

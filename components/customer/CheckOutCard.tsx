@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
-import { formatYen } from '@/lib/billing'
+import { formatYen, applyStudentDiscount } from '@/lib/billing'
 
 type Props = {
   checkedInAt: string
   estimatedCost: number
   intervalMinutes: number
   amountPerInterval: number
+  isStudent: boolean
   onCheckedOut: () => void
 }
 
@@ -45,6 +46,7 @@ export function CheckOutCard({
   estimatedCost: initialCost,
   intervalMinutes,
   amountPerInterval,
+  isStudent,
   onCheckedOut,
 }: Props) {
   const { accessToken } = useLiff()
@@ -61,12 +63,12 @@ export function CheckOutCard({
       const minutes = Math.floor((now - start) / 60000)
       setElapsed(minutes)
       const units = Math.ceil(minutes / intervalMinutes)
-      setCurrentCost(units * amountPerInterval)
+      setCurrentCost(applyStudentDiscount(units * amountPerInterval, isStudent))
     }
     tick()
     const id = setInterval(tick, 30000)
     return () => clearInterval(id)
-  }, [checkedInAt, intervalMinutes, amountPerInterval])
+  }, [checkedInAt, intervalMinutes, amountPerInterval, isStudent])
 
   async function handleCheckOut() {
     if (!accessToken) return
@@ -157,6 +159,14 @@ export function CheckOutCard({
               >
                 {formatYen(result.cost)}
               </p>
+              {isStudent && (
+                <span
+                  className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
+                >
+                  🎓 学割適用（半額）
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -233,6 +243,14 @@ export function CheckOutCard({
             >
               {formatYen(currentCost)}
             </p>
+            {isStudent && (
+              <span
+                className="inline-block mt-2 text-xs font-bold px-3 py-1 rounded-full"
+                style={{ background: 'rgba(76,175,80,0.15)', color: '#2e7d32', border: '1px solid rgba(76,175,80,0.35)' }}
+              >
+                🎓 学割適用（半額）
+              </span>
+            )}
           </div>
         </div>
       </div>

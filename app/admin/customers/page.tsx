@@ -107,6 +107,7 @@ export default async function CustomersPage({ searchParams }: Props) {
               <th className="px-4 py-3">年代</th>
               <th className="px-4 py-3">地域</th>
               <th className="px-4 py-3">会員</th>
+              <th className="px-4 py-3">学割</th>
               <th className="px-4 py-3">状態</th>
               <th className="px-4 py-3">来店回数</th>
               <th className="px-4 py-3">最終利用日</th>
@@ -175,6 +176,13 @@ export default async function CustomersPage({ searchParams }: Props) {
                   <td className="px-4 py-4">
                     {customer.subscription?.status === 'active' ? (
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">会員</span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-4">
+                    {customer.isStudent ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">🎓 学割</span>
                     ) : (
                       <span className="text-gray-400 text-sm">-</span>
                     )}

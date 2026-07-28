@@ -13,6 +13,7 @@ type OpenSession = {
   estimatedCost: number
   intervalMinutes: number
   amountPerInterval: number
+  isStudent: boolean
 }
 
 type SubscriptionStatus = {
@@ -230,6 +231,7 @@ export default function HomePage() {
               estimatedCost={openSession.estimatedCost}
               intervalMinutes={openSession.intervalMinutes}
               amountPerInterval={openSession.amountPerInterval}
+              isStudent={openSession.isStudent}
               onCheckedOut={() => {
                 setOpenSession(null)
                 fetchStatus()

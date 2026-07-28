@@ -44,9 +44,10 @@ export async function GET(request: Request) {
     openSessionData = {
       id: openSession.id,
       checkedInAt: openSession.checkedInAt.toISOString(),
-      estimatedCost: getVisitCost(durationMinutes, isSubscriber, configs),
+      estimatedCost: getVisitCost(durationMinutes, isSubscriber, configs, profile.isStudent),
       intervalMinutes: config?.intervalMinutes ?? 30,
       amountPerInterval: config?.amountYen ?? 500,
+      isStudent: profile.isStudent,
     }
   }
 

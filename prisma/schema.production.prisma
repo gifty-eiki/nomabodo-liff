@@ -17,6 +17,7 @@ model Profile {
   displayName      String?
   pictureUrl       String?
   isAdmin          Boolean        @default(false)
+  isStudent        Boolean        @default(false)
   stripeCustomerId String?
   realName         String?
   playerName       String?
