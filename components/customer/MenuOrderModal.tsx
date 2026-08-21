@@ -61,7 +61,7 @@ export function MenuOrderModal({ menu, initialOrder, onSaved, onClose }: Props) 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >

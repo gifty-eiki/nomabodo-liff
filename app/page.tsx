@@ -211,7 +211,7 @@ export default function HomePage() {
               <img
                 src="/logo.jpg"
                 alt="のまぼど"
-                className="w-72 h-72 object-contain"
+                className="w-52 h-52 object-contain"
                 style={{ filter: 'drop-shadow(0 4px 16px rgba(80,40,0,0.25))' }}
               />
 
@@ -263,8 +263,9 @@ export default function HomePage() {
           )}
         </main>
 
-        {/* フッター：カフェルールボタン */}
+        {/* フッター：カフェルールボタン（入室前のみ表示） */}
         <footer className="px-4 pb-8">
+          {!openSession && (
           <button
             onClick={() => setShowRules(true)}
             className="w-full rounded-2xl px-5 py-4 flex items-center justify-center gap-3 shadow-xl backdrop-blur-sm active:scale-95 transition-all"
@@ -292,6 +293,7 @@ export default function HomePage() {
               <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
+          )}
         </footer>
       </div>
     </div>
