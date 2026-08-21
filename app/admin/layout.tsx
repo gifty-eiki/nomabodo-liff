@@ -38,6 +38,12 @@ export default async function AdminLayout({
             >
               料金設定
             </Link>
+            <Link
+              href="/admin/menu"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              メニュー設定
+            </Link>
           </div>
         </div>
       </nav>

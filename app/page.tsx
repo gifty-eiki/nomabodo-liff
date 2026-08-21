@@ -6,6 +6,8 @@ import { CheckInButton } from '@/components/customer/CheckInButton'
 import { CheckOutCard } from '@/components/customer/CheckOutCard'
 import { SurveyModal } from '@/components/customer/SurveyModal'
 import { EditPlayerNameModal } from '@/components/customer/EditPlayerNameModal'
+import { RulesModal } from '@/components/customer/RulesModal'
+import type { MenuItemLite, OrderLine } from '@/lib/menu'
 
 type PlanTier = {
   label: string
@@ -22,6 +24,8 @@ type OpenSession = {
   isSubscriber: boolean
   isStudent: boolean
   weekendSurcharge: number
+  order: OrderLine[]
+  orderTotal: number
 }
 
 type SubscriptionStatus = {
@@ -36,11 +40,13 @@ export default function HomePage() {
   const { isReady, profile, accessToken, error } = useLiff()
   const [openSession, setOpenSession] = useState<OpenSession | null>(null)
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null)
+  const [menu, setMenu] = useState<MenuItemLite[]>([])
   const [currentOccupancy, setCurrentOccupancy] = useState(0)
   const [loading, setLoading] = useState(true)
   const [surveyCompleted, setSurveyCompleted] = useState(true) // 初期はtrueで画面ちらつき防止
   const [playerName, setPlayerName] = useState<string | null>(null)
   const [showEditName, setShowEditName] = useState(false)
+  const [showRules, setShowRules] = useState(false)
 
   async function fetchStatus() {
     if (!accessToken) return
@@ -53,6 +59,7 @@ export default function HomePage() {
         const data = await res.json()
         setOpenSession(data.openSession)
         setSubscription(data.subscription)
+        setMenu(data.menu ?? [])
         setCurrentOccupancy(data.currentOccupancy ?? 0)
         setSurveyCompleted(data.surveyCompleted ?? true)
         setPlayerName(data.playerName ?? null)
@@ -133,6 +140,9 @@ export default function HomePage() {
           onClose={() => setShowEditName(false)}
         />
       )}
+
+      {/* カフェルールモーダル */}
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
 
       {/* コンテンツ */}
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -241,6 +251,10 @@ export default function HomePage() {
               isSubscriber={openSession.isSubscriber}
               isStudent={openSession.isStudent}
               weekendSurcharge={openSession.weekendSurcharge}
+              menu={menu}
+              order={openSession.order}
+              orderTotal={openSession.orderTotal}
+              onOrdered={() => fetchStatus()}
               onCheckedOut={() => {
                 setOpenSession(null)
                 fetchStatus()
@@ -249,40 +263,35 @@ export default function HomePage() {
           )}
         </main>
 
-        {/* フッター：在室人数 */}
+        {/* フッター：カフェルールボタン */}
         <footer className="px-4 pb-8">
-          {!openSession && (
+          <button
+            onClick={() => setShowRules(true)}
+            className="w-full rounded-2xl px-5 py-4 flex items-center justify-center gap-3 shadow-xl backdrop-blur-sm active:scale-95 transition-all"
+            style={{
+              background: 'rgba(255,252,245,0.88)',
+              border: '1px solid rgba(200,160,80,0.2)',
+            }}
+          >
             <div
-              className="rounded-2xl px-5 py-4 flex items-center justify-center gap-4 shadow-xl backdrop-blur-sm"
-              style={{
-                background: 'rgba(255,252,245,0.88)',
-                border: '1px solid rgba(200,160,80,0.2)',
-              }}
+              className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-xl"
+              style={{ background: 'rgba(139,90,43,0.12)' }}
             >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(139,90,43,0.12)' }}
-              >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <circle cx="9" cy="7" r="3" fill="#8B5A2B" opacity="0.8"/>
-                  <circle cx="15" cy="7" r="3" fill="#8B5A2B" opacity="0.5"/>
-                  <path d="M3 19c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#8B5A2B" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-                  <path d="M15 13c2.761 0 5 2.239 5 5" stroke="#8B5A2B" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-                </svg>
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-medium tracking-wider" style={{ color: '#a07040' }}>
-                  現在のご利用人数
-                </p>
-                <p className="text-2xl font-bold leading-tight" style={{ color: '#3d1f0a' }}>
-                  {currentOccupancy}
-                  <span className="text-base font-normal ml-1" style={{ color: 'rgba(80,50,20,0.45)' }}>
-                    / {MAX_CAPACITY}名
-                  </span>
-                </p>
-              </div>
+              📖
             </div>
-          )}
+            <div className="text-left">
+              <p className="text-sm font-bold leading-tight" style={{ color: '#3d1f0a' }}>
+                のまぼどカフェ ルール
+              </p>
+              <p className="text-xs" style={{ color: '#a07040' }}>
+                タップして確認する
+              </p>
+            </div>
+            {/* 右向き矢印 */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="ml-auto flex-shrink-0" style={{ color: '#a07040' }}>
+              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
         </footer>
       </div>
     </div>

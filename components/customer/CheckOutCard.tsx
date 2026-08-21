@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useLiff } from '@/components/liff/LiffProvider'
 import { formatYen, applyStudentDiscount, getPlanCost, pickPlan } from '@/lib/billing'
 import type { PlanTier } from '@/lib/billing'
+import type { MenuItemLite, OrderLine } from '@/lib/menu'
+import { MenuOrderModal } from '@/components/customer/MenuOrderModal'
 
 type Props = {
   checkedInAt: string
@@ -12,6 +14,10 @@ type Props = {
   isSubscriber: boolean
   isStudent: boolean
   weekendSurcharge: number
+  menu: MenuItemLite[]
+  order: OrderLine[]
+  orderTotal: number
+  onOrdered: () => void
   onCheckedOut: () => void
 }
 
@@ -51,6 +57,10 @@ export function CheckOutCard({
   isSubscriber,
   isStudent,
   weekendSurcharge,
+  menu,
+  order,
+  orderTotal,
+  onOrdered,
   onCheckedOut,
 }: Props) {
   const { accessToken } = useLiff()
@@ -60,6 +70,10 @@ export function CheckOutCard({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<CheckOutResult | null>(null)
+  const [showMenu, setShowMenu] = useState(false)
+
+  // プラン料金（学割・土日祝込み）＋ 注文合計 ＝ 支払い合計
+  const grandTotal = currentCost + orderTotal
 
   useEffect(() => {
     const start = new Date(checkedInAt).getTime()
@@ -91,8 +105,12 @@ export function CheckOutCard({
       if (data.stripeUrl) {
         window.location.href = data.stripeUrl
       } else {
-        // 退室完了 → 結果画面を表示
-        setResult({ duration: elapsed, cost: currentCost, planLabel })
+        // 退室完了 → 結果画面を表示（サーバー確定額＝注文込みを優先）
+        setResult({
+          duration: elapsed,
+          cost: data.session?.amountYen ?? grandTotal,
+          planLabel,
+        })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
@@ -135,7 +153,7 @@ export function CheckOutCard({
               🎉 ありがとうございました！
             </p>
             <p className="text-sm font-bold mt-1.5" style={{ color: '#b23b00' }}>
-              お会計はレジ（スタッフ）までお願いします
+              お会計はレジまでお願いします
             </p>
             <p className="text-xs mt-0.5" style={{ color: '#a07040' }}>
               またのご来店をお待ちしています
@@ -271,8 +289,13 @@ export function CheckOutCard({
               className="text-4xl font-bold"
               style={{ color: '#7a3e10', textShadow: '0 1px 2px rgba(0,0,0,0.08)' }}
             >
-              {formatYen(currentCost)}
+              {formatYen(grandTotal)}
             </p>
+            {orderTotal > 0 && (
+              <p className="text-xs mt-1.5" style={{ color: '#a07040' }}>
+                利用料 {formatYen(currentCost)} ＋ 🍽️ 注文 {formatYen(orderTotal)}
+              </p>
+            )}
             <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
               {isStudent && (
                 <span
@@ -294,6 +317,40 @@ export function CheckOutCard({
           </div>
         </div>
       </div>
+
+      {/* メニュー注文ボタン */}
+      <button
+        onClick={() => setShowMenu(true)}
+        className="w-full py-3.5 rounded-2xl font-bold text-base tracking-wide shadow-lg active:scale-95 transition-all duration-200 touch-manipulation flex items-center justify-center gap-2"
+        style={{
+          background: 'linear-gradient(160deg, rgba(255,250,240,0.95) 0%, rgba(250,235,200,0.95) 100%)',
+          color: '#5c2e00',
+          border: '1.5px solid rgba(139,90,43,0.35)',
+        }}
+      >
+        🍽️ メニューを注文
+        {orderTotal > 0 && (
+          <span
+            className="text-xs px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(139,90,43,0.15)', color: '#7a3e10' }}
+          >
+            {formatYen(orderTotal)}
+          </span>
+        )}
+      </button>
+
+      {/* メニュー注文モーダル */}
+      {showMenu && (
+        <MenuOrderModal
+          menu={menu}
+          initialOrder={order}
+          onSaved={() => {
+            setShowMenu(false)
+            onOrdered()
+          }}
+          onClose={() => setShowMenu(false)}
+        />
+      )}
 
       {/* 退室ボタン */}
       <button

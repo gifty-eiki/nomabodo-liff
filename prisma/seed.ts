@@ -17,6 +17,22 @@ async function main() {
     })
   }
 
+  // 追加メニュー（フード・ドリンク）の初期データ（暫定価格 300〜500円）
+  const menuCount = await prisma.menuItem.count()
+  if (menuCount > 0) {
+    console.log('MenuItem seed already exists, skipping menu')
+  } else {
+    await prisma.menuItem.createMany({
+      data: [
+        { label: 'ポテト', priceYen: 300, kind: 'count', sortOrder: 1 },
+        { label: 'お菓子', priceYen: 300, kind: 'count', sortOrder: 2 },
+        { label: 'たこ焼き', priceYen: 400, kind: 'count', sortOrder: 3 },
+        { label: 'カレー', priceYen: 500, kind: 'count', sortOrder: 4 },
+        { label: 'ドリンクバー', priceYen: 400, kind: 'toggle', sortOrder: 5 },
+      ],
+    })
+  }
+
   // 開発用管理者ユーザーを作成
   await prisma.profile.upsert({
     where: { lineUserId: 'dev-user-001' },

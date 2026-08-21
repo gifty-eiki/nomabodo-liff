@@ -20,8 +20,15 @@ export async function GET(request: Request) {
     include: { subscription: true },
   })
   if (!profile) {
-    return NextResponse.json({ openSession: null, subscription: null, surveyCompleted: false, playerName: null, currentOccupancy: 0 })
+    return NextResponse.json({ openSession: null, subscription: null, surveyCompleted: false, playerName: null, currentOccupancy: 0, menu: [] })
   }
+
+  // 有効な追加メニュー（フード・ドリンク）
+  const menu = await prisma.menuItem.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    select: { id: true, label: true, priceYen: true, kind: true },
+  })
 
   const [openSession, currentOccupancy] = await Promise.all([
     prisma.visitSession.findFirst({
@@ -46,6 +53,15 @@ export async function GET(request: Request) {
     // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
     const weekendSurcharge = getWeekendHolidaySurcharge(openSession.checkedInAt, isSubscriber)
     const currentPlan = isSubscriber ? null : pickPlan(durationMinutes, plans)
+    // このセッションの注文（追加メニュー）
+    const orderItems = await prisma.orderItem.findMany({
+      where: { visitSessionId: openSession.id },
+      include: { menuItem: true },
+    })
+    const orderTotal = orderItems.reduce(
+      (sum, oi) => sum + oi.menuItem.priceYen * oi.quantity,
+      0
+    )
     openSessionData = {
       id: openSession.id,
       checkedInAt: openSession.checkedInAt.toISOString(),
@@ -57,6 +73,8 @@ export async function GET(request: Request) {
       isSubscriber,
       isStudent: profile.isStudent,
       weekendSurcharge,
+      order: orderItems.map((oi) => ({ menuItemId: oi.menuItemId, quantity: oi.quantity })),
+      orderTotal,
     }
   }
 
@@ -75,5 +93,6 @@ export async function GET(request: Request) {
     surveyCompleted: profile.surveyCompleted,
     playerName: profile.playerName,
     currentOccupancy,
+    menu,
   })
 }

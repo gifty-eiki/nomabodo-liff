@@ -31,16 +31,17 @@ model Profile {
 }
 
 model VisitSession {
-  id              String    @id @default(cuid())
+  id              String      @id @default(cuid())
   profileId       String
-  profile         Profile   @relation(fields: [profileId], references: [id])
-  checkedInAt     DateTime  @default(now())
+  profile         Profile     @relation(fields: [profileId], references: [id])
+  checkedInAt     DateTime    @default(now())
   checkedOutAt    DateTime?
   durationMinutes Int?
   amountYen       Int?
-  billingType     String    @default("pay_per_use")
+  billingType     String      @default("pay_per_use")
   payment         Payment?
-  createdAt       DateTime  @default(now())
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
 }
 
 model Payment {
@@ -94,4 +95,31 @@ model PricePlan {
   sortOrder  Int      @default(0)
   isActive   Boolean  @default(true)
   updatedAt  DateTime @updatedAt
+}
+
+// 追加メニュー（フード・ドリンク）。管理画面で価格を編集できる。
+// kind = "count"（個数を＋/−で指定）/ "toggle"（ドリンクバー等のON/OFF・1回のみ加算）
+model MenuItem {
+  id         String      @id @default(cuid())
+  label      String
+  priceYen   Int
+  kind       String      @default("count")
+  sortOrder  Int         @default(0)
+  isActive   Boolean     @default(true)
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
+}
+
+// 来店セッションごとの注文。1セッション×1メニュー=1行（quantityを上書き保存）。
+model OrderItem {
+  id             String       @id @default(cuid())
+  visitSessionId String
+  visitSession   VisitSession @relation(fields: [visitSessionId], references: [id])
+  menuItemId     String
+  menuItem       MenuItem     @relation(fields: [menuItemId], references: [id])
+  quantity       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([visitSessionId, menuItemId])
 }

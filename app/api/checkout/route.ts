@@ -51,10 +51,22 @@ export async function POST(request: Request) {
     select: { label: true, maxMinutes: true, amountYen: true },
   })
 
+  // 追加メニュー（フード・ドリンク）の注文合計。会員・学割・土日祝に関わらず実額を加算。
+  const orderItems = await prisma.orderItem.findMany({
+    where: { visitSessionId: session.id },
+    include: { menuItem: true },
+  })
+  const orderTotal = orderItems.reduce(
+    (sum, oi) => sum + oi.menuItem.priceYen * oi.quantity,
+    0
+  )
+
   // 土日祝の一律加算（入室日基準・会員は対象外・学割半額の対象外）
   const weekendSurcharge = getWeekendHolidaySurcharge(session.checkedInAt, isSubscriber)
   const amountYen =
-    getPlanCost(durationMinutes, isSubscriber, plans, profile.isStudent) + weekendSurcharge
+    getPlanCost(durationMinutes, isSubscriber, plans, profile.isStudent) +
+    weekendSurcharge +
+    orderTotal
   const billingType = isSubscriber ? 'subscription' : 'pay_per_use'
 
   const updatedSession = await prisma.visitSession.update({
